@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>আরবি শব্দার্থ কুইজ</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #21262d;
+    --accent: #2ea043;
+    --accent2: #388bfd;
+    --correct: #2ea043;
+    --wrong: #da3633;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --gold: #d29922;
+  }
+  body {
+    font-family: 'Hind Siliguri', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background-image:
+      radial-gradient(ellipse at 10% 30%, rgba(46,160,67,0.07) 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 70%, rgba(56,139,253,0.06) 0%, transparent 55%);
+  }
+  .quiz-wrapper { width: 100%; max-width: 640px; }
+
+  /* Header */
+  .quiz-header { text-align: center; margin-bottom: 28px; animation: fadeDown 0.5s ease both; }
+  .quiz-badge {
+    display: inline-block;
+    background: rgba(46,160,67,0.15);
+    border: 1px solid rgba(46,160,67,0.3);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 4px 14px;
+    border-radius: 99px;
+    margin-bottom: 12px;
+  }
+  .quiz-title {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .quiz-title span { color: var(--accent); }
+  .quiz-subtitle { font-size: 0.85rem; color: var(--muted); }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-top { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+  .progress-track { background: var(--border); border-radius: 99px; height: 5px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px;
+    transition: width 0.45s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* Question Card */
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    margin-bottom: 16px;
+    animation: slideUp 0.35s ease both;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .q-num { font-size: 0.72rem; font-weight: 700; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+  .q-score-badge {
+    background: rgba(56,139,253,0.12);
+    border: 1px solid rgba(56,139,253,0.2);
+    color: var(--accent2);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+  .q-arabic {
+    font-family: 'Amiri', serif;
+    font-size: 1.6rem;
+    color: #79c0ff;
+    text-align: right;
+    direction: rtl;
+    line-height: 2;
+    margin-bottom: 10px;
+    padding: 10px 14px;
+    background: rgba(56,139,253,0.06);
+    border-radius: 10px;
+    border: 1px solid rgba(56,139,253,0.12);
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; line-height: 1.7; color: #e6edf3; }
+
+  /* Options */
+  .options { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .opt-btn {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    color: var(--text);
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.95rem;
+    text-align: left;
+    transition: all 0.18s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .opt-btn:hover:not(:disabled) {
+    border-color: var(--accent2);
+    background: rgba(56,139,253,0.06);
+    transform: translateX(3px);
+  }
+  .opt-label {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 700;
+    flex-shrink: 0;
+    transition: all 0.18s;
+  }
+  .opt-text { line-height: 1.5; }
+  .opt-btn.correct { border-color: var(--correct); background: rgba(46,160,67,0.08); }
+  .opt-btn.correct .opt-label { background: var(--correct); color: #fff; }
+  .opt-btn.wrong { border-color: var(--wrong); background: rgba(218,54,51,0.08); }
+  .opt-btn.wrong .opt-label { background: var(--wrong); color: #fff; }
+  .opt-btn:disabled { cursor: default; transform: none !important; }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 14px; padding: 10px 14px;
+    border-radius: 8px; font-size: 0.88rem; font-weight: 500;
+    display: none; animation: fadeIn 0.25s ease;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: rgba(46,160,67,0.1); color: #3fb950; border: 1px solid rgba(46,160,67,0.2); }
+  .feedback.no { background: rgba(218,54,51,0.1); color: #f85149; border: 1px solid rgba(218,54,51,0.2); }
+
+  /* Nav */
+  .nav { display: flex; justify-content: flex-end; margin-top: 14px; }
+  .next-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none; border-radius: 10px;
+    padding: 11px 24px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.95rem; font-weight: 600;
+    cursor: pointer;
+    display: none; align-items: center; gap: 6px;
+    transition: all 0.18s;
+    box-shadow: 0 4px 16px rgba(46,160,67,0.3);
+  }
+  .next-btn:hover { background: #3fb950; transform: translateY(-1px); }
+  .next-btn.show { display: flex; }
+
+  /* Result */
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 28px;
+    text-align: center;
+    display: none;
+    animation: slideUp 0.4s ease both;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .result-emoji { font-size: 3.5rem; margin-bottom: 12px; }
+  .result-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
+  .result-score {
+    font-size: 3.2rem; font-weight: 700;
+    background: linear-gradient(135deg, var(--gold), #e3b341);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin: 14px 0;
+  }
+  .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 20px 0 28px; }
+  .stat { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 8px; }
+  .stat-v { font-size: 1.5rem; font-weight: 700; margin-bottom: 3px; }
+  .stat-l { font-size: 0.72rem; color: var(--muted); }
+  .result-msg { color: var(--muted); margin-bottom: 24px; font-size: 0.95rem; }
+  .restart-btn {
+    background: transparent;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    border-radius: 10px;
+    padding: 11px 28px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.95rem; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .restart-btn:hover { background: rgba(46,160,67,0.1); transform: translateY(-1px); }
+
+  /* Share */
+  .share-section { margin-top: 16px; }
+  .share-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
+  .share-url {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: var(--accent2);
+    word-break: break-all;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .share-url:hover { border-color: var(--accent2); }
+  .copy-btn {
+    background: rgba(56,139,253,0.12);
+    border: 1px solid rgba(56,139,253,0.25);
+    color: var(--accent2);
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.85rem; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    width: 100%;
+  }
+  .copy-btn:hover { background: rgba(56,139,253,0.2); }
+
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:none; } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+</style>
+</head>
+<body>
+<div class="quiz-wrapper">
+  <div class="quiz-header">
+    <div class="quiz-badge">আরবি শব্দার্থ</div>
+    <div class="quiz-title">আরবি <span>MCQ</span> কুইজ</div>
+    <div class="quiz-subtitle">২০টি প্রশ্ন • প্রতিটি সঠিক উত্তরে ১ নম্বর</div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span id="qCounter">প্রশ্ন ১/২০</span>
+      <span id="scoreLive">স্কোর: ০</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="pFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="q-card" id="qCard">
+    <div class="q-meta">
+      <span class="q-num" id="qNum">প্রশ্ন ০১</span>
+      <span class="q-score-badge" id="qBadge">২০ টি প্রশ্ন বাকি</span>
+    </div>
+    <div class="q-arabic" id="qArabic"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="opts"></div>
+    <div class="feedback" id="fb"></div>
+  </div>
+
+  <div class="nav">
+    <button class="next-btn" id="nextBtn" onclick="next()">পরবর্তী →</button>
+  </div>
+
+  <div class="result-card" id="resCard">
+    <div class="result-emoji" id="resEmoji">🎉</div>
+    <div class="result-title">কুইজ সম্পন্ন!</div>
+    <div class="result-score" id="resScore">০/২০</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-v" id="stC" style="color:#3fb950">০</div><div class="stat-l">সঠিক</div></div>
+      <div class="stat"><div class="stat-v" id="stW" style="color:#f85149">০</div><div class="stat-l">ভুল</div></div>
+      <div class="stat"><div class="stat-v" id="stP" style="color:#d29922">০%</div><div class="stat-l">সাফল্য</div></div>
+    </div>
+    <div class="result-msg" id="resMsg"></div>
+    <button class="restart-btn" onclick="restart()">🔄 আবার চেষ্টা করো</button>
+    <div class="share-section">
+      <div class="share-label">🔗 বন্ধুদের সাথে শেয়ার করো</div>
+      <div class="share-url" id="shareUrl" onclick="copyLink()">এখানে হোস্ট লিংক বসাও</div>
+      <button class="copy-btn" onclick="copyLink()">📋 লিংক কপি করো</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const toBN = n => String(n).replace(/\d/g,'d'=>'০১২৩৪৫৬৭৮৯'[d]);
+
+const ALL_QUESTIONS = [
+  {
+    arabic: "وَإِذَا لَقُوا الَّذِيْنَ اٰمَنُوْا قَالُوْا اٰمَنَّا",
+    q: "এখানে قَالُوْا (ক-লু) শব্দের অর্থ কী?",
+    opts: ["সে বলেছে","তারা বলেছে","তারা বলে","তারা বলবে"],
+    ans: 1
+  },
+  {
+    arabic: "اَلَّذِيْ جَعَلَ لَكُمُ الْاَرْضَ",
+    q: "এখানে جَعَلَ (জাআ'লা) শব্দের অর্থ কী?",
+    opts: ["আমি তৈরি করেছি","আমরা তৈরি করেছি","সে তৈরি করেছে","তুমি তৈরি করেছ"],
+    ans: 2
+  },
+  {
+    arabic: "وَإِنْ كُنْتُمْ فِيْ رَيْبٍ مِمَّا نَزَّلْنَا عَلٰى عَبْدِنَا",
+    q: "এই আয়াতে كُنْتُمْ (কুংতুম) এর অর্থ কি?",
+    opts: ["তোমরা হবে","তুমি ছিলে","তারা হয়েছে","তোমরা হয়েছো/ হয়েছিলে"],
+    ans: 3
+  },
+  {
+    arabic: "قَالُوا الْاٰنَ جِئْتَ بِالْحَقِّ",
+    q: "এখানে جِئْتَ (জি'তা) শব্দের অর্থ কি?",
+    opts: ["তোমরা এসেছো","তুমি এসেছো","সে এসেছে","আমি এসেছি"],
+    ans: 1
+  },
+  {
+    arabic: "قُوْلُوْا اٰمَنَّا بِاللّٰهِ",
+    q: "এখানে اٰمَنَّا (আ-মান্না) শব্দের অর্থ কি?",
+    opts: ["আমি বিশ্বাস করি","তুমি ঈমান এনেছো","তারা ঈমান এনেছে","আমরা বিশ্বাস করেছি"],
+    ans: 3
+  },
+  {
+    arabic: "وَإِذْ اٰتَيْنَا مُوْسَى الْكِتَابَ",
+    q: "এই আয়াতে اٰتَيْنَا (আ-তাইনা-) শব্দের অর্থ কি?",
+    opts: ["সে দিয়েছে","তারা দিয়েছে","আমরা দিয়েছি","তোমরা দিয়েছো"],
+    ans: 2
+  },
+  {
+    arabic: "وَلَقَدْ عَلِمُوْا",
+    q: "এখানে عَلِمُوْا (আ'লিমু--) শব্দের অর্থ কী?",
+    opts: ["আমরা জ্ঞানী","তোমরা জেনেছো","আমাদের শিখিয়েছে","তারা জেনেছে"],
+    ans: 3
+  },
+  {
+    arabic: "أَرَأَيْتَ الَّذِيْ يُكَذِّبُ بِالدِّيْنِ",
+    q: "এখানে أَ+رَأَيْتَ (আ রআইতা) শব্দের অর্থ কী?",
+    opts: ["তোমরা কি দেখছ?","আমরা দিয়েছি।","তুমি কি দেখেছো?","তারা দেখেছে।"],
+    ans: 2
+  },
+  {
+    arabic: "إِنَّ الَّذِيْنَ كَفَرُوْا",
+    q: "এখানে كَفَرُوْا (কাফারু--) শব্দের অর্থ কী?",
+    opts: ["তারা কাফের।","আমরা কুফুরি করেছি।","তারা অবিশ্বাসী।","তারা কুফরী/অবিশ্বাস করেছো।"],
+    ans: 3
+  },
+  {
+    arabic: "إِنَّ الَّذِيْنَ اٰمَنُوْا وَعَمِلُوا الصَّالِحَاتِ",
+    q: "এখানে وَعَمِلُوْا (ওয়া আ'মিলু) শব্দের অর্থ কী?",
+    opts: ["এবং তারা কাজ করেছে।","সে তৈরি করেছো।","এবং তারা জেনেছো।","তারা জ্ঞানী হয়েছো।"],
+    ans: 0
+  },
+  {
+    arabic: "أَرْضٌ",
+    q: "أَرْضٌ (আরদুন) অর্থ হলো -",
+    opts: ["জমিন/পৃথিবী","আমি যাই","আসমান","আকাশ"],
+    ans: 0
+  },
+  {
+    arabic: "اعْبُدُوْا رَبَّكُمُ الَّذِيْ خَلَقَكُمْ",
+    q: "এখানে الَّذِيْ (আল্লাযী) অর্থ কী?",
+    opts: ["যারা","যে/যিনি","তারা","কে?"],
+    ans: 1
+  },
+  {
+    arabic: "إِنْ كُنْتُمْ صَادِقِيْنَ",
+    q: "এখানে إِنْ (ইন) অর্থ কী?",
+    opts: ["যা","কেবলমাত্র","যদি","হয়"],
+    ans: 2
+  },
+  {
+    arabic: "ذٰلِكَ",
+    q: "ذٰلِكَ (যা-লিকা) অর্থ কি?",
+    opts: ["এটা","ঐগুলো","এইগুলো","ঐ/উহা"],
+    ans: 3
+  },
+  {
+    arabic: "إِذَا",
+    q: "إِذَا (ইযা-) অর্থ কি?",
+    opts: ["যখন","যারা","সে","তারা"],
+    ans: 0
+  },
+  {
+    arabic: "عَلٰى",
+    q: "عَلٰى ('আলা-) অর্থ কি?",
+    opts: ["নিচে","উপরে","ডানে","বামে"],
+    ans: 1
+  },
+  {
+    arabic: "لَا",
+    q: "لَا (লা-) অর্থ কি?",
+    opts: ["না/নাই/নয়","হ্যাঁ","যা","কোনো"],
+    ans: 0
+  },
+  {
+    arabic: "إِلَّا",
+    q: "إِلَّا (ইল্লা-) এর বাংলা অর্থ কি?",
+    opts: ["ছাড়া","ব্যতিত","কিন্তু","উপরের সবগুলো"],
+    ans: 3
+  },
+  {
+    arabic: "",
+    q: "অতীত কালের ক্রিয়ার রূপান্তর এবং বাংলা অর্থ কি দেখ করতে হয়?",
+    opts: ["প্রান্তিক/শেষ চিহ্ন দেখে","শুরুর চিহ্ন দেখে","মাঝের চিহ্ন দেখে","কোনোটিই নয়"],
+    ans: 0
+  },
+  {
+    arabic: "",
+    q: "সাধারণত আরবিতে ক্রিয়া/ভার্ব কত প্রকার? (আমাদের পড়ানো পদ্ধতি অনুসারে)",
+    opts: ["দুই প্রকার","তিন প্রকার","চার প্রকার","জানা নেই"],
+    ans: 2
+  }
+];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let questions, current, score, answered;
+
+function init() {
+  questions = shuffle(ALL_QUESTIONS).map(q => {
+    const indexed = q.opts.map((o,i)=>({text:o,correct:i===q.ans}));
+    const shuffled = shuffle(indexed);
+    return { ...q, shuffledOpts: shuffled, correctIdx: shuffled.findIndex(o=>o.correct) };
+  });
+  current = 0; score = 0; answered = false;
+}
+
+function load() {
+  const q = questions[current];
+  const total = questions.length;
+  const pct = (current/total)*100;
+
+  document.getElementById('pFill').style.width = pct+'%';
+  document.getElementById('qCounter').textContent = `প্রশ্ন ${toBN(current+1)}/${toBN(total)}`;
+  document.getElementById('scoreLive').textContent = `স্কোর: ${toBN(score)}`;
+  document.getElementById('qNum').textContent = `প্রশ্ন ${String(current+1).padStart(2,'0')}`;
+  document.getElementById('qBadge').textContent = `${toBN(total-current)} টি প্রশ্ন বাকি`;
+
+  const arabicEl = document.getElementById('qArabic');
+  if (q.arabic) {
+    arabicEl.textContent = q.arabic;
+    arabicEl.style.display = 'block';
+  } else {
+    arabicEl.style.display = 'none';
+  }
+  document.getElementById('qText').textContent = q.q;
+
+  const labels = ['ক','খ','গ','ঘ'];
+  const opts = document.getElementById('opts');
+  opts.innerHTML = '';
+  q.shuffledOpts.forEach((o,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="opt-label">${labels[i]}</span><span class="opt-text">${o.text}</span>`;
+    btn.onclick = () => pick(i);
+    opts.appendChild(btn);
+  });
+
+  document.getElementById('fb').className = 'feedback';
+  document.getElementById('fb').textContent = '';
+  document.getElementById('nextBtn').className = 'next-btn';
+  answered = false;
+}
+
+function pick(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  const labels = ['ক','খ','গ','ঘ'];
+
+  if (idx === q.correctIdx) {
+    btns[idx].classList.add('correct');
+    score++;
+    fb.textContent = '✅ সঠিক উত্তর! চমৎকার!';
+    fb.className = 'feedback show ok';
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[q.correctIdx].classList.add('correct');
+    fb.textContent = `❌ ভুল হয়েছে। সঠিক উত্তর: ${labels[q.correctIdx]}) ${q.shuffledOpts[q.correctIdx].text}`;
+    fb.className = 'feedback show no';
+  }
+  document.getElementById('scoreLive').textContent = `স্কোর: ${toBN(score)}`;
+  const nb = document.getElementById('nextBtn');
+  nb.textContent = current < questions.length-1 ? 'পরবর্তী →' : 'ফলাফল দেখো 🏁';
+  nb.className = 'next-btn show';
+}
+
+function next() {
+  current++;
+  if (current >= questions.length) { showResult(); return; }
+  const c = document.getElementById('qCard');
+  c.style.animation = 'none'; void c.offsetWidth; c.style.animation = 'slideUp 0.35s ease both';
+  load();
+}
+
+function showResult() {
+  document.getElementById('qCard').style.display = 'none';
+  document.querySelector('.nav').style.display = 'none';
+  document.getElementById('pFill').style.width = '100%';
+
+  const total = questions.length, wrong = total-score;
+  const pct = Math.round((score/total)*100);
+  document.getElementById('resScore').textContent = `${toBN(score)}/${toBN(total)}`;
+  document.getElementById('stC').textContent = toBN(score);
+  document.getElementById('stW').textContent = toBN(wrong);
+  document.getElementById('stP').textContent = `${toBN(pct)}%`;
+
+  const r = pct>=90?['🏆','অসাধারণ! তুমি আরবি বিশেষজ্ঞ! 🌟']:
+             pct>=70?['😊','দারুণ! আরেকটু পড়লে পারফেক্ট হবে।']:
+             pct>=40?['🙂','মন্দ না! আরও প্র্যাকটিস করো।']:
+                     ['😔','হাল ছেড়ো না! আবার চেষ্টা করো।'];
+  document.getElementById('resEmoji').textContent = r[0];
+  document.getElementById('resMsg').textContent = r[1];
+  document.getElementById('shareUrl').textContent = window.location.href;
+  document.getElementById('resCard').style.display = 'block';
+}
+
+function restart() {
+  init();
+  document.getElementById('qCard').style.display = 'block';
+  document.querySelector('.nav').style.display = 'flex';
+  document.getElementById('resCard').style.display = 'none';
+  load();
+}
+
+function copyLink() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✅ কপি হয়েছে!';
+    setTimeout(()=>btn.textContent='📋 লিংক কপি করো', 2000);
+  });
+}
+
+init(); load();
+</script>
+</body>
+</html>
